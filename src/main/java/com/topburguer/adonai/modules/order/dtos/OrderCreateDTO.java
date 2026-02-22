@@ -1,8 +1,0 @@
-package com.topburguer.adonai.modules.order.dtos;
-
-import jakarta.validation.constraints.NotNull;
-
-public record OrderCreateDTO(
-        @NotNull Long userId
-) {
-}

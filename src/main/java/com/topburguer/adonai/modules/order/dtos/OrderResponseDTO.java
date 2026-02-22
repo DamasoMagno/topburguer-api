@@ -1,19 +1,19 @@
 package com.topburguer.adonai.modules.order.dtos;
 
-import com.topburguer.adonai.entities.Product;
+import com.topburguer.adonai.entities.Order;
+
+import java.util.Set;
 
 public record OrderResponseDTO(
-        String name,
-        double price,
-        String description,
-        Long categoryId
+        Long userId,
+        Set<OrderItemResponseDTO> items
 ) {
-    public OrderResponseDTO(Product product) {
+    public OrderResponseDTO(Order order) {
         this(
-                product.getName(),
-                product.getPrice(),
-                product.getDescription(),
-                product.getCategory().getId()
+                order.getUser().getId(),
+                order.getOrderItems().stream()
+                        .map(OrderItemResponseDTO::new)
+                        .collect(java.util.stream.Collectors.toSet())
         );
     }
 }
