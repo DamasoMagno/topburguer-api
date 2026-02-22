@@ -3,7 +3,6 @@ package com.topburguer.adonai.modules.order.services.impl;
 import com.topburguer.adonai.entities.*;
 import com.topburguer.adonai.entities.enums.OrderStatus;
 import com.topburguer.adonai.exceptions.NotFoundException;
-import com.topburguer.adonai.modules.category.repositories.CategoryRepository;
 import com.topburguer.adonai.modules.order.dtos.OrderItemCreateDTO;
 import com.topburguer.adonai.modules.order.dtos.OrderResponseDTO;
 import com.topburguer.adonai.modules.order.repositories.OrderItemRepository;
@@ -27,7 +26,6 @@ public class OrderServiceImpl implements OrderService {
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
-            CategoryRepository categoryRepository,
             OrderItemRepository orderItemRepository,
             UserRepository userRepository,
             ProductRepository productRepository
@@ -80,7 +78,61 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void updateStatus(Long id, OrderStatus status) {
+        Order order = this.orderRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("Order not found")
+        );
+
+        try {
+            order.setStatus(status);
+            this.orderRepository.save(order);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid order status: " + status);
+        }
+    }
+
+    @Override
+    public void updateOrderItemsQuantity(Long orderId, Integer quantity) {
+        OrderItem orderItem = this.orderItemRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Orderitem not found"));
+
+        if(quantity <= 0){
+            this.orderItemRepository.delete(orderItem);
+            return;
+        }
+
+        orderItem.setQuantity(quantity);
+        this.orderItemRepository.save(orderItem);
+    }
+
+    @Override
     public void deleteById(Long id) {
-        this.orderRepository.deleteById(id);
+        Order order = this.orderRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("Order not found")
+        );
+
+        this.orderRepository.delete(order);
+    }
+
+    @Override
+    public void checkout(Long cartId) {
+        Order order = this.orderRepository.findById(cartId).orElseThrow(
+                () -> new NotFoundException("Order not found")
+        );
+
+        if(order.getStatus() != OrderStatus.CART){
+            throw new IllegalStateException("Only orders with status CART can be checked out");
+        }
+
+        order.setStatus(OrderStatus.PENDING);
+        this.orderRepository.save(order);
+    }
+
+    @Override
+    public void deleteOrderItemById(Long id) {
+        OrderItem orderItem = this.orderItemRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Orderitem not found"));
+
+        this.orderItemRepository.delete(orderItem);
     }
 }
