@@ -29,22 +29,16 @@ public class UserAddressController {
 
     @DeleteMapping("/{addressId}")
     public ResponseEntity<String> deleteAddress(@PathVariable("addressId") Long addressId) {
-        try {
             this.userAddressService.deleteAddress(addressId);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
 
     @GetMapping("/{addressId}")
     public ResponseEntity<String> getAddress(@PathVariable("addressId") Long addressId) {
-        try {
             this.userAddressService.getAddress(addressId);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
 
     @PatchMapping("/{addressId}")
@@ -63,12 +57,9 @@ public class UserAddressController {
     public ResponseEntity<String> createAddress(
             @RequestBody @Valid UserAddressCreateDTO productDTO
     ) {
-        try {
             userAddressService.createAddress(productDTO);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
 
 }

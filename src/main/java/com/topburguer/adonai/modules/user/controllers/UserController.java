@@ -27,22 +27,16 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<String> deleteProduct(@PathVariable("userId") Long userId) {
-        try {
             this.userService.deleteUser(userId);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<String> getProduct(@PathVariable("userId") Long userId) {
-        try {
             this.userService.getUser(userId);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
 
     @PatchMapping("/{userId}")
@@ -61,12 +55,9 @@ public class UserController {
     public ResponseEntity<String> createUser(
             @RequestBody @Valid UserCreateDTO productDTO
     ) {
-        try {
             userService.createUser(productDTO);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
 
 }
