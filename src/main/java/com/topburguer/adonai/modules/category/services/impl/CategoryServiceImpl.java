@@ -36,6 +36,11 @@ public class CategoryServiceImpl implements CategoryService {
             throw new IllegalArgumentException("Categoria já existe");
         }
 
+        if(name == null || name.trim().isEmpty()) {
+            logger.warn("Nome da categoria é inválido: '{}'", name);
+            throw new IllegalArgumentException("Nome da categoria é obrigatório");
+        }
+
         Category categoryDTO = new Category();
         categoryDTO.setName(name);
 
