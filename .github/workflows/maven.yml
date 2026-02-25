@@ -11,29 +11,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: Code checkout
         uses: actions/checkout@v4
 
-      - name: Configurar JDK 17
+      - name: Configure JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-      #
-      #      - name: Executar testes
-      #        run: mvn test
 
-      - name: Build do projeto
+      - name: Execute tests
+        run: mvn test
+
+      - name: Build project
         run: mvn clean package -DskipTests
 
-      #      - name: Verificar cobertura de testes
-      #        run: mvn verify
+      - name: Verify test coverage
+        run: mvn verify
 
-      - name: Upload de artefatos
+      - name: Artifacts upload
         uses: actions/upload-artifact@v4
         with:
           name: jar-file
           path: target/*.jar
           retention-days: 7
-
