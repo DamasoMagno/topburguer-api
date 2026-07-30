@@ -1,4 +1,4 @@
-import type { ProductService } from "../services/ProductService";
+import type { ProductService } from "../../services/ProductService";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 

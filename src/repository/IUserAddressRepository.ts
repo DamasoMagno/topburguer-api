@@ -1,4 +1,4 @@
-import type { UserAddress } from "../controllers/UserAddress";
+import type { UserAddress } from "../http/controllers/UserAddress";
 
 export interface IUserAddressRepository {
   createUserAddress(userAddress: UserAddress): Promise<void>;

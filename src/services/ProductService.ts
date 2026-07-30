@@ -1,4 +1,4 @@
-import type { Product } from "../controllers/ProductController";
+import type { Product } from "../http/controllers/ProductController";
 import type { Redis } from "../lib/redis";
 import type { IProductRepository } from "../repository/IProductRepository";
 import type { IS3Repository } from "../repository/IS3Repository";

@@ -2,7 +2,7 @@ import { categories } from "../../database/schema";
 import { db } from "../../database";
 import { eq } from "drizzle-orm";
 import type { ICategoryRepository } from "../ICategoryRepository";
-import type { Category } from "../../controllers/CategoryController";
+import type { Category } from "../../http/controllers/CategoryController";
 
 export class DrizzleCategoryRepository implements ICategoryRepository {
   constructor(private readonly database: typeof db) {}

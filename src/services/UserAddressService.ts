@@ -1,4 +1,4 @@
-import type { UserAddress } from "../controllers/UserAddress";
+import type { UserAddress } from "../http/controllers/UserAddress";
 import type { IUserAddressRepository } from "../repository/IUserAddressRepository";
 
 export class UserAddressService {

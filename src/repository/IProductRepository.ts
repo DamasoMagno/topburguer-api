@@ -1,4 +1,4 @@
-import type { Product } from "../controllers/ProductController";
+import type { Product } from "../http/controllers/ProductController";
 
 export interface ProductQuery {
   limit: number;

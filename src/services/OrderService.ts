@@ -1,5 +1,5 @@
-import type { Order } from "../controllers/OrderController";
-import type { UserAddress } from "../controllers/UserAddress";
+import type { Order } from "../http/controllers/OrderController";
+import type { UserAddress } from "../http/controllers/UserAddress";
 import type { IOrderRepository } from "../repository/IOrderRepository";
 import type { IUserAddressRepository } from "../repository/IUserAddressRepository";
 

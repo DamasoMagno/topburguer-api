@@ -1,5 +1,5 @@
 import type { ICategoryRepository } from "../repository/ICategoryRepository";
-import type { Category } from "../controllers/CategoryController";
+import type { Category } from "../http/controllers/CategoryController";
 
 export class CategoryService {
   constructor(private readonly categoryRepository: ICategoryRepository) {}

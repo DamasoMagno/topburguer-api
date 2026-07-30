@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import type { CategoryService } from "../services/CategoryService";
+import type { CategoryService } from "../../services/CategoryService";
 
 const categorySchema = z.object({
   name: z.string(),

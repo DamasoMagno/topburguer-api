@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import type { OrderService } from "../services/OrderService";
+import type { OrderService } from "../../services/OrderService";
 
 const orderSchema = z.object({
   userId: z.number(),

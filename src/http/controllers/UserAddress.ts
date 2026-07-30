@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import type { UserAddressService } from "../services/UserAddressService";
+import type { UserAddressService } from "../../services/UserAddressService";
 
 const userAddressSchema = z.object({
   userId: z.number(),

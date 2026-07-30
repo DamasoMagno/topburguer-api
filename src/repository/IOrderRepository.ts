@@ -1,4 +1,4 @@
-import type { Order } from "../controllers/OrderController";
+import type { Order } from "../http/controllers/OrderController";
 
 export interface IOrderRepository {
   createOrder(order: Order): Promise<void>;

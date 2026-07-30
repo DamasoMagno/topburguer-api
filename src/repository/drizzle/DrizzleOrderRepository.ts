@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../../database";
 import { orders } from "../../database/schema";
 import type { IOrderRepository } from "../IOrderRepository";
-import type { Order } from "../../controllers/OrderController";
+import type { Order } from "../../http/controllers/OrderController";
 
 export class DrizzleOrderRepository implements IOrderRepository {
   constructor(private readonly database: typeof db) {}

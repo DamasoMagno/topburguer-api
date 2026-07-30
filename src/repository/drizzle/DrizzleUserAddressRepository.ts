@@ -2,7 +2,7 @@ import { userAddresses } from "../../database/schema";
 import { db } from "../../database";
 import { eq } from "drizzle-orm";
 import type { IUserAddressRepository } from "../IUserAddressRepository";
-import type { UserAddress } from "../../controllers/UserAddress";
+import type { UserAddress } from "../../http/controllers/UserAddress";
 
 export class DrizzleUserAddressRepository implements IUserAddressRepository {
   constructor(private readonly database: typeof db) {}

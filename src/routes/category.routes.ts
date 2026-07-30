@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { db } from "../database";
-import { CategoryController } from "../controllers/CategoryController";
+import { CategoryController } from "../http/controllers/CategoryController";
 import { CategoryService } from "../services/CategoryService";
 import { DrizzleCategoryRepository } from "../repository/drizzle/DrizzleCategoryRepository";
 

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { ProductController } from "../controllers/ProductController";
+import { ProductController } from "../http/controllers/ProductController";
 import { ProductService } from "../services/ProductService";
 import { DrizzleProductRepository } from "../repository/drizzle/DrizzleProductRepository";
 import { S3Service } from "../services/S3Service";
