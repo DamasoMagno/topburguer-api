@@ -1,20 +1,19 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../database/relations";
+import { db } from "../../database";
 import { orders } from "../../database/schema";
 import type { IOrderRepository } from "../IOrderRepository";
-import type { Order } from "../../http/controllers/OrderController";
 
 export class DrizzleOrderRepository implements IOrderRepository {
   constructor(private readonly database: typeof db) {}
 
-  async createOrder(order: Order): Promise<void> {
+  async createOrder(order: any): Promise<void> {
     await this.database.insert(orders).values({
       ...order,
       totalAmount: order.totalPrice.toString(),
     });
   }
 
-  async getOrderById(id: number): Promise<Order | null> {
+  async getOrderById(id: number) {
     const result = await this.database
       .select()
       .from(orders)

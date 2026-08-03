@@ -1,8 +1,7 @@
 import { categories } from "../../database/schema";
-import { db } from "../../database/relations";
+import { db } from "../../database";
 import { eq } from "drizzle-orm";
 import type { ICategoryRepository } from "../ICategoryRepository";
-import type { Category } from "../../http/controllers/CategoryController";
 
 export class DrizzleCategoryRepository implements ICategoryRepository {
   constructor(private readonly database: typeof db) {}
@@ -18,7 +17,7 @@ export class DrizzleCategoryRepository implements ICategoryRepository {
     return category ?? null;
   }
 
-  async getCategoryByName(name: string): Promise<Category | null> {
+  async getCategoryByName(name: string) {
     const category = await this.database
       .query.categories.findFirst({
         where: {
