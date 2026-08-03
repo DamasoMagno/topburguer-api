@@ -1,5 +1,5 @@
 import { userAddresses } from "../../database/schema";
-import { db } from "../../database";
+import { db } from "../../database/relations";
 import { eq } from "drizzle-orm";
 import type { IUserAddressRepository } from "../IUserAddressRepository";
 import type { UserAddress } from "../../http/controllers/UserAddress";

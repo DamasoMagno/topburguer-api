@@ -4,7 +4,7 @@ import { ProductService } from "../services/ProductService";
 import { DrizzleProductRepository } from "../repository/drizzle/DrizzleProductRepository";
 import { S3Service } from "../services/S3Service";
 import { s3Client } from "../lib/s3";
-import { db } from "../database";
+import { db } from "../database/relations";
 import { Redis } from "../lib/redis";
 
 const redis = new Redis();

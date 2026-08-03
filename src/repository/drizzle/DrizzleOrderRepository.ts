@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../database";
+import { db } from "../../database/relations";
 import { orders } from "../../database/schema";
 import type { IOrderRepository } from "../IOrderRepository";
 import type { Order } from "../../http/controllers/OrderController";

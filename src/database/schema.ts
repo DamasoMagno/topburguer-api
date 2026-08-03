@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm/_relations";
 import {
   integer,
   numeric,
@@ -11,15 +10,40 @@ import {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  email: text("email").notNull(),
-  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  googleId: text("google_id").unique(),
+  role: text("role").notNull().default("user").$type<"admin" | "user">(),
+  authProvider: text("auth_provider")
+    .notNull()
+    .default("credentials")
+    .$type<"local" | "google">(),
+  password: text("password"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const adminProfiles = pgTable("admin_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id)
+    .unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  phoneNumber: text("phone_number").notNull(),
+  userId: integer("user_id")
+    .references(() => users.id)
+    .unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const userAddresses = pgTable("user_addresses", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userProfileId: integer("user_profile_id").references(() => userProfiles.id),
   address: text("address").notNull(),
   city: text("city").notNull(),
   state: text("state").notNull(),
@@ -29,11 +53,19 @@ export const userAddresses = pgTable("user_addresses", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   price: numeric("price").notNull(),
+  categoryId: integer("category_id").references(() => categories.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -46,16 +78,9 @@ export const images = pgTable("images", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userProfileId: integer("user_profile_id").references(() => userProfiles.id),
   totalAmount: numeric("total_amount").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -68,29 +93,3 @@ export const orderItems = pgTable("order_items", {
   quantity: integer("quantity").notNull(),
   price: numeric("price").notNull(),
 });
-
-export const orderItemRelations = relations(orderItems, ({ one }) => ({
-  order: one(orders, {
-    fields: [orderItems.orderId],
-    references: [orders.id],
-  }),
-}));
-
-export const productCategoryRelations = relations(categories, ({ many }) => ({
-  products: many(products),
-}));
-
-export const productRelations = relations(products, ({ one, many }) => ({
-  images: one(images, {
-    fields: [products.id],
-    references: [images.productId],
-  }),
-  categories: many(categories),
-}));
-
-export const userAddressRelations = relations(userAddresses, ({ one }) => ({
-  user: one(users, {
-    fields: [userAddresses.userId],
-    references: [users.id],
-  }),
-}));

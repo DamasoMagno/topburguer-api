@@ -12,7 +12,7 @@ export class CategoryController {
 
     return response
       .status(201)
-      .send({ message: "Category created successfully" });
+      .send();
   }
 
   async getCategoryById(request: FastifyRequest, response: FastifyReply) {
