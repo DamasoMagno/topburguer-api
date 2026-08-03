@@ -1,12 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import type { CategoryService } from "../../services/CategoryService";
-
-const categorySchema = z.object({
-  name: z.string(),
-});
-
-export type Category = z.infer<typeof categorySchema>;
+import { categorySchema } from "../schemas";
 
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
@@ -44,12 +38,16 @@ export class CategoryController {
 
     await this.categoryService.updateCategory(id, { name });
 
-    return response.status(200).send({ message: "Category updated successfully" });
+    return response
+      .status(200)
+      .send({ message: "Category updated successfully" });
   }
 
   async deleteCategory(request: FastifyRequest, response: FastifyReply) {
     const { id } = request.params as { id: number };
     await this.categoryService.deleteCategory(id);
-    return response.status(200).send({ message: "Category deleted successfully" });
+    return response
+      .status(200)
+      .send({ message: "Category deleted successfully" });
   }
 }

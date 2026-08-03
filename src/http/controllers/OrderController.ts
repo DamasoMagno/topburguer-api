@@ -1,20 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import type { OrderService } from "../../services/OrderService";
-
-const orderSchema = z.object({
-  userId: z.number(),
-  products: z.array(
-    z.object({
-      productId: z.number(),
-      quantity: z.number(),
-    }),
-  ),
-  totalPrice: z.number(),
-  status: z.enum(["pending", "confirmed", "shipped", "delivered", "cancelled"]),
-});
-
-export type Order = z.infer<typeof orderSchema>;
+import { orderSchema } from "../schemas";
 
 export class OrderController {
   private orderService: OrderService;
