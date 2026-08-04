@@ -1,4 +1,4 @@
-import type { Category } from "../http/controllers/CategoryController";
+import type { Category } from "../http/schemas";
 
 export interface ICategoryRepository {
   createCategory(category: Category): Promise<void>;

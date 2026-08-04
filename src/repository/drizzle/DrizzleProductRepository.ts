@@ -1,5 +1,5 @@
 import { products } from "../../database/schema";
-import { db } from "../../database/relations";
+import { db } from "../../database";
 import { eq } from "drizzle-orm";
 import type { Product } from "../../http/controllers/ProductController";
 import type {

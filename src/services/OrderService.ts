@@ -1,7 +1,4 @@
-import type { Order } from "../http/controllers/OrderController";
-import type { UserAddress } from "../http/controllers/UserAddress";
 import type { IOrderRepository } from "../repository/IOrderRepository";
-import type { IUserAddressRepository } from "../repository/IUserAddressRepository";
 
 export class OrderService {
   constructor(private readonly orderRepository: IOrderRepository) {}
@@ -11,7 +8,7 @@ export class OrderService {
     return orders;
   }
 
-  async createOrder(order: Order) {
+  async createOrder(order: any) {
     await this.orderRepository.createOrder(order);
     return;
   }
@@ -26,7 +23,7 @@ export class OrderService {
     return order;
   }
 
-  async updateOrder(id: number, order: Order) {
+  async updateOrder(id: number, order: any) {
     await this.orderRepository.updateOrder(id, order);
   }
 

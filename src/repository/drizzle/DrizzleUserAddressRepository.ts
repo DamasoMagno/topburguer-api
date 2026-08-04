@@ -1,5 +1,5 @@
 import { userAddresses } from "../../database/schema";
-import { db } from "../../database/relations";
+import { db } from "../../database";
 import { eq } from "drizzle-orm";
 import type { IUserAddressRepository } from "../IUserAddressRepository";
 import type { UserAddress } from "../../http/controllers/UserAddress";
@@ -14,24 +14,30 @@ export class DrizzleUserAddressRepository implements IUserAddressRepository {
       state: userAddress.state,
       zip: userAddress.zip,
       country: userAddress.country,
-      userId: userAddress.userId,
+      userProfileId: userAddress.userId,
     });
   }
 
-  async getUserAddressById(id: number): Promise<UserAddress | null> {
-    const userAddress = await this.database
-      .select()
-      .from(userAddresses)
-      .where(eq(userAddresses.id, id));
+  async getUserAddressById(id: number) {
+    const userAddress = await this.database.query.userAddresses.findFirst({
+      where: {
+        id,
+      },
+      with: {
+        userProfile: true,
+      },
+    });
 
-    if (!userAddress[0]) return null;
+    const userProfile = userAddress?.userProfile;
+    if (!userProfile) return null;
+
     return {
-      userId: userAddress[0].userId ?? 0,
-      address: userAddress[0].address,
-      city: userAddress[0].city ?? "",
-      state: userAddress[0].state ?? "",
-      zip: userAddress[0].zip ?? "",
-      country: userAddress[0].country ?? "",
+      userId: userProfile.id ?? 0,
+      address: userAddress.address,
+      city: userAddress.city ?? "",
+      state: userAddress.state ?? "",
+      zip: userAddress.zip ?? "",
+      country: userAddress.country ?? "",
     };
   }
 
@@ -40,7 +46,7 @@ export class DrizzleUserAddressRepository implements IUserAddressRepository {
       await this.database.query.userAddresses.findMany();
 
     return userAddressesResult.map((userAddress) => ({
-      userId: userAddress.userId ?? 0,
+      userId: userAddress.userProfileId ?? 0,
       address: userAddress.address,
       city: userAddress.city ?? "",
       state: userAddress.state ?? "",
@@ -51,18 +57,23 @@ export class DrizzleUserAddressRepository implements IUserAddressRepository {
 
   async getUserAddressByUserId(userId: number): Promise<UserAddress | null> {
     const userAddress = await this.database
-      .select()
-      .from(userAddresses)
-      .where(eq(userAddresses.userId, userId));
+      .query.userAddresses.findFirst({
+        where: {
+          userProfileId: userId,
+        },
+        with: {
+          userProfile: true,
+        },
+      })
 
-    if (!userAddress[0]) return null;
+
     return {
-      userId: userAddress[0].userId ?? 0,
-      address: userAddress[0].address,
-      city: userAddress[0].city,
-      state: userAddress[0].state ?? "",
-      zip: userAddress[0].zip ?? "",
-      country: userAddress[0].country ?? "",
+      userId: userAddress?.userProfile?.id ?? 0,
+      address: userAddress?.address ?? "",
+      city: userAddress?.city ?? "",
+      state: userAddress?.state ?? "",
+      zip: userAddress?.zip ?? "",
+      country: userAddress?.country ?? "",
     };
   }
 

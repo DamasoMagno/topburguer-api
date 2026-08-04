@@ -1,5 +1,4 @@
 import type { ICategoryRepository } from "../repository/ICategoryRepository";
-import type { Category } from "../http/controllers/CategoryController";
 
 export class CategoryService {
   constructor(private readonly categoryRepository: ICategoryRepository) {}
@@ -9,7 +8,7 @@ export class CategoryService {
     return categories;
   }
 
-  async createCategory(category: Category) {
+  async createCategory(category: any) {
     const findCategoryByName = await this.categoryRepository.getCategoryByName(
       category.name,
     );
@@ -33,7 +32,7 @@ export class CategoryService {
     };
   }
 
-  async updateCategory(id: number, category: Category) {
+  async updateCategory(id: number, category: any) {
     const findCategoryById = await this.categoryRepository.getCategoryById(id);
     if (!findCategoryById) throw new Error("Category not found");
     await this.categoryRepository.updateCategory(id, category);

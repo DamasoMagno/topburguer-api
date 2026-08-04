@@ -1,7 +1,15 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "../../database";
 import { orders } from "../../database/schema";
 import type { IOrderRepository } from "../IOrderRepository";
+
+interface UpdateOrder {
+  totalPrice: number;
+  status?: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  userId?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 export class DrizzleOrderRepository implements IOrderRepository {
   constructor(private readonly database: typeof db) {}
@@ -14,79 +22,32 @@ export class DrizzleOrderRepository implements IOrderRepository {
   }
 
   async getOrderById(id: number) {
-    const result = await this.database
-      .select()
-      .from(orders)
-      .where(eq(orders.id, id));
-
-    return result[0]
-      ? {
-          ...result[0],
-          totalPrice: Number(result[0].totalAmount),
-          products: result[0].products.map((product) => ({
-            productId: product.productId,
-            quantity: product.quantity,
-          })),
-          status: result[0].status,
-          userId: result[0].userId,
-          createdAt: result[0].createdAt,
-          updatedAt: result[0].updatedAt,
-        }
-      : null;
+    const result = await this.database.query.orders.findFirst({
+      where: {
+        id,
+      },
+    });
+    return result ?? null;
   }
 
-  async getOrders(): Promise<Order[]> {
-    const result = await this.database
-      .select()
-      .from(orders)
-      .orderBy(asc(orders.id));
-    return result.map((order: typeof orders.$inferSelect) => ({
-      ...order,
-      totalPrice: Number(order.totalAmount),
-      products: order.products?.map((product) => ({
-        productId: product.productId,
-        quantity: product.quantity,
-      })),
-      status: order.status as
-        | "pending"
-        | "confirmed"
-        | "shipped"
-        | "delivered"
-        | "cancelled",
-      userId: order.userId as number,
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt,
-    }));
+  async getOrders(): Promise<(typeof orders.$inferSelect)[]> {
+    const result = await this.database.query.orders.findMany({});
+    return result ?? [];
   }
 
-  async getOrderByUserId(userId: number): Promise<Order | null> {
-    const result = await this.database
-      .select()
-      .from(orders)
-      .where(eq(orders.userId, userId));
+  async getOrderByUserId(
+    userId: number,
+  ): Promise<typeof orders.$inferSelect | null> {
+    const result = await this.database.query.orders.findFirst({
+      where: {
+        userProfileId: userId,
+      },
+    });
 
-    return result[0]
-      ? {
-          ...result[0],
-          totalPrice: Number(result[0].totalAmount),
-          products: result[0].products?.map((product) => ({
-            productId: product.productId,
-            quantity: product.quantity,
-          })),
-          status: result[0].status as
-            | "pending"
-            | "confirmed"
-            | "shipped"
-            | "delivered"
-            | "cancelled",
-          userId: result[0].userId as number,
-          createdAt: result[0].createdAt,
-          updatedAt: result[0].updatedAt,
-        }
-      : null;
+    return result ?? null;
   }
 
-  async updateOrder(id: number, order: Order): Promise<void> {
+  async updateOrder(id: number, order: UpdateOrder): Promise<void> {
     await this.database
       .update(orders)
       .set({
