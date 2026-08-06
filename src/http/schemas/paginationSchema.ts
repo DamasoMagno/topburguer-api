@@ -5,6 +5,5 @@ const paginationSchema = z.object({
   offset: z.number().positive(),
 });
 
-type Pagination = z.infer<typeof paginationSchema>;
 
-export { paginationSchema, type Pagination };
+export { paginationSchema };

@@ -19,15 +19,8 @@ const productResponseSchema = z.object({
   price: z.number().positive(),
 });
 
-type CreateProduct = z.infer<typeof createProductSchema>;
-type UpdateProduct = z.infer<typeof updateProductSchema>;
-type ProductResponse = z.infer<typeof productResponseSchema>;
-
 export {
   createProductSchema,
-  type CreateProduct,
   updateProductSchema,
-  type UpdateProduct,
   productResponseSchema,
-  type ProductResponse,
 };

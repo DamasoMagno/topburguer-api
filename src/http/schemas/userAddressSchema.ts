@@ -31,18 +31,9 @@ const updateUserAddressSchema = z.object({
   country: z.string(),
 });
 
-type UserAddressParams = z.infer<typeof userAddressParamsSchema>;
-type UpdateUserAddress = z.infer<typeof updateUserAddressSchema>;
-type CreateUserAddress = z.infer<typeof createUserAddressSchema>;
-type UserAddressResponse = z.infer<typeof userAddressResponseSchema>;
-
 export {
   createUserAddressSchema,
-  type CreateUserAddress,
   userAddressResponseSchema,
-  type UserAddressResponse,
   userAddressParamsSchema,
-  type UserAddressParams,
   updateUserAddressSchema,
-  type UpdateUserAddress,
 };
