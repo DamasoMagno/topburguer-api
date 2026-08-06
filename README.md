@@ -3,15 +3,59 @@
 API REST em desenvolvimento para gerenciamento de produtos, categorias, pedidos
 e endereços de usuários.
 
-O projeto utiliza uma arquitetura em camadas, separando o transporte HTTP, as
-regras de negócio e a persistência de dados.
+O projeto segue **arquitetura hexagonal (ports & adapters)**, organizada por
+camadas para facilitar a evolução e a inclusão de novos recursos.
+
+## Arquitetura
+
+```text
+HTTP (driving) → Application (use cases) → Ports ← Infrastructure (driven)
+                       ↑
+                    Domain
+```
+
+- **Domain**: entidades, tipos e erros de negócio (sem dependências externas)
+- **Application**: casos de uso e contratos (ports) de saída
+- **Infrastructure**: adapters (Drizzle/Postgres, Redis, S3) e composition root
+- **HTTP**: controllers, routes, schemas Zod e middlewares
+
+```text
+src/
+├── domain/                 # Regras e tipos de negócio
+│   ├── category/
+│   ├── product/
+│   ├── order/
+│   ├── user-address/
+│   └── shared/
+├── application/
+│   ├── ports/outbound/     # Contratos (repositories, cache, storage)
+│   └── use-cases/          # Orquestração da aplicação
+├── infrastructure/
+│   ├── config/             # Variáveis de ambiente
+│   ├── database/           # Schema e conexão Drizzle
+│   ├── persistence/        # Adapters de banco
+│   ├── cache/              # Adapter Redis
+│   ├── storage/            # Adapter S3
+│   └── di/                 # Composition root
+├── http/
+│   ├── controllers/
+│   ├── routes/
+│   ├── schemas/
+│   └── middlewares/
+└── server.ts               # Entry point
+```
+
+Fluxo típico:
+
+```text
+Route → Controller → Use Case → Port → Adapter (DB / Cache / S3)
+```
 
 ## Tecnologias
 
 - Node.js e TypeScript
 - Fastify
-- PostgreSQL
-- Drizzle ORM
+- PostgreSQL + Drizzle ORM
 - Redis
 - AWS S3
 - Zod
@@ -19,56 +63,25 @@ regras de negócio e a persistência de dados.
 - Swagger
 - Docker Compose
 
-## Arquitetura
-
-O fluxo principal da aplicação é:
-
-```text
-Route -> Controller -> Service -> Repository -> PostgreSQL
-                              -> Redis
-                              -> AWS S3
-```
-
-Estrutura dos principais diretórios:
-
-```text
-src/
-├── database/             # Conexão e schema do banco
-├── http/
-│   ├── controllers/      # Entrada HTTP e validação dos dados
-│   └── middlewares/      # Middlewares HTTP
-├── lib/                  # Clientes Redis e AWS S3
-├── repository/           # Contratos de persistência
-│   └── drizzle/          # Implementações com Drizzle ORM
-├── routes/               # Registro das rotas Fastify
-├── services/             # Regras de negócio
-├── env.ts                # Validação das variáveis de ambiente
-└── server.ts             # Inicialização da aplicação
-```
-
 ## Pré-requisitos
 
-- Node.js 20 ou superior
-- npm
+- Node.js 20+
 - PostgreSQL
 - Redis
-- Uma conta e um bucket no AWS S3
-- Docker e Docker Compose, caso queira executar o PostgreSQL em container
+- Credenciais AWS S3
+- Docker Compose (opcional, para o banco)
 
 ## Configuração
-
-Instale as dependências:
 
 ```bash
 npm ci
 ```
 
-Crie um arquivo `.env` na raiz do projeto:
+Crie um `.env`:
 
 ```env
 DATABASE_URL=postgresql://adonai:adonai@localhost:5432/adonai
 REDIS_URL=redis://localhost:6379
-
 JWT_SECRET=substitua-por-um-segredo-seguro
 
 AWS_REGION=us-east-1
@@ -77,103 +90,81 @@ AWS_SECRET_ACCESS_KEY=sua-secret-key
 AWS_BUCKET_NAME=nome-do-bucket
 ```
 
-Não versione o arquivo `.env`.
-
 ## Banco de dados
-
-O Docker Compose fornece um serviço PostgreSQL:
 
 ```bash
 docker compose up -d db
 ```
 
-As tabelas estão declaradas em `src/database/schema.ts`. O projeto ainda não
-possui migrations ou um script para criar o schema automaticamente; antes de
-iniciar a API, as tabelas devem existir no banco configurado em `DATABASE_URL`.
-
-O Redis não está incluído no Docker Compose e deve estar disponível
-separadamente no endereço definido em `REDIS_URL`.
+As tabelas estão em `src/infrastructure/database/schema.ts`. Ainda não há
+migrations versionadas; as tabelas precisam existir antes de subir a API.
 
 ## Executando
-
-Inicie a aplicação em modo de desenvolvimento:
 
 ```bash
 npm start
 ```
 
-A API será disponibilizada em:
+API em `http://localhost:3000`.
 
-```text
-http://localhost:3000
-```
+## Rotas
 
-O script atual utiliza `tsx watch`, portanto reinicia a aplicação
-automaticamente após alterações no código.
-
-## Rotas disponíveis
-
-### Categorias
+### Categorias (`/category`)
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `POST` | `/category/` | Cria uma categoria |
-| `GET` | `/category/` | Lista as categorias |
-| `GET` | `/category/:id` | Busca uma categoria |
-| `PUT` | `/category/:id` | Atualiza uma categoria |
-| `DELETE` | `/category/:id` | Remove uma categoria |
+| `POST` | `/category/` | Cria categoria |
+| `GET` | `/category/` | Lista categorias |
+| `GET` | `/category/:id` | Busca categoria |
+| `PUT` | `/category/:id` | Atualiza categoria |
+| `DELETE` | `/category/:id` | Remove categoria |
 
-Exemplo de corpo para criação e atualização:
-
-```json
-{
-  "name": "Camisetas"
-}
-```
-
-### Produtos
+### Produtos (`/product`)
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `POST` | `/product/` | Cria um produto |
-| `GET` | `/product/` | Lista os produtos |
-| `GET` | `/product/:id` | Busca um produto |
-| `PUT` | `/product/:id` | Atualiza um produto |
-| `DELETE` | `/product/:id` | Remove um produto |
+| `POST` | `/product/` | Cria produto |
+| `GET` | `/product/` | Lista produtos |
+| `GET` | `/product/:id` | Busca produto |
+| `PUT` | `/product/:id` | Atualiza produto |
+| `DELETE` | `/product/:id` | Remove produto |
 
-Exemplo de corpo para criação e atualização:
+### Pedidos (`/order`)
 
-```json
-{
-  "name": "Camiseta básica",
-  "description": "Camiseta de algodão",
-  "price": 59.9
-}
-```
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `POST` | `/order/` | Cria pedido |
+| `GET` | `/order/` | Lista pedidos |
+| `GET` | `/order/:id` | Busca pedido |
 
-## Funcionalidades em desenvolvimento
+### Endereços (`/user-address`)
 
-O schema e os repositórios também possuem estruturas para:
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `POST` | `/user-address/` | Cria endereço |
+| `GET` | `/user-address/` | Lista endereços |
+| `GET` | `/user-address/:id` | Busca endereço |
 
-- Pedidos e itens de pedidos
-- Endereços de usuários
-- Upload de imagens no AWS S3
-- Cache de produtos no Redis
+## Como adicionar um novo recurso
 
-Essas funcionalidades ainda não possuem todas as rotas HTTP registradas.
+1. Modele tipos em `src/domain/<recurso>/`
+2. Crie o port em `src/application/ports/outbound/`
+3. Implemente o use case em `src/application/use-cases/<recurso>/`
+4. Implemente o adapter em `src/infrastructure/persistence/` (ou outro adapter)
+5. Exponha via HTTP em `src/http/{schemas,controllers,routes}/`
+6. Conecte no composition root `src/infrastructure/di/container.ts`
+7. Registre a rota em `src/server.ts`
 
 ## Estado atual
 
-Este projeto está em desenvolvimento e ainda não deve ser considerado pronto
-para produção. Entre os próximos passos estão:
+Projeto em evolução. Próximos passos sugeridos:
 
-- Adicionar migrations e seeds
-- Conectar o cliente Redis durante a inicialização
-- Implementar autenticação e proteger as rotas
-- Adicionar tratamento centralizado de erros
-- Adicionar testes automatizados
-- Criar scripts de build e execução para produção
-- Documentar e publicar a interface Swagger
+- Migrations e seeds
+- Autenticação protegendos as rotas (`http/middlewares`)
+- Error handler central (DomainError → HTTP status)
+- Testes de domínio e use cases
+- Build e scripts de produção
+- Swagger UI
 
 ## Licença
 

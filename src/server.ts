@@ -3,12 +3,18 @@ import jwt from "@fastify/jwt";
 import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 
-import { productRoutes } from "./routes/product.routes";
-import { categoryRoutes } from "./routes/category.routes";
+import { env } from "./infrastructure/config/env";
+import { createContainer } from "./infrastructure/di/container";
+import { categoryRoutes } from "./http/routes/category.routes";
+import { productRoutes } from "./http/routes/product.routes";
+import { orderRoutes } from "./http/routes/order.routes";
+import { userAddressRoutes } from "./http/routes/user-address.routes";
+
 const server = fastify();
+const container = createContainer();
 
 server.register(jwt, {
-  secret: process.env.JWT_SECRET!,
+  secret: env.JWT_SECRET ?? "dev-secret",
 });
 
 server.register(cors, {
@@ -18,7 +24,7 @@ server.register(cors, {
 
 server.register(swagger, {
   swagger: {
-    info: { title: "API", version: "1.0.0" },
+    info: { title: "Adonai API", version: "1.0.0" },
     host: "localhost:3000",
     schemes: ["http"],
     consumes: ["application/json"],
@@ -26,6 +32,8 @@ server.register(swagger, {
     tags: [
       { name: "category", description: "Category related routes" },
       { name: "product", description: "Product related routes" },
+      { name: "order", description: "Order related routes" },
+      { name: "user-address", description: "User address related routes" },
     ],
     securityDefinitions: {
       Authorization: {
@@ -38,12 +46,32 @@ server.register(swagger, {
   },
 });
 
-server.register(categoryRoutes, { prefix: "/category" });
-server.register(productRoutes, { prefix: "/product" });
+server.register(categoryRoutes(container.categoryController), {
+  prefix: "/category",
+});
+server.register(productRoutes(container.productController), {
+  prefix: "/product",
+});
+server.register(orderRoutes(container.orderController), {
+  prefix: "/order",
+});
+server.register(userAddressRoutes(container.userAddressController), {
+  prefix: "/user-address",
+});
 
-server.listen({ port: 3000 }, (err, address) => {
-  if (err) {
-    console.error(err);
-  }
-  console.log(`Server is running on ${address}`);
+async function bootstrap() {
+  await container.cache.connect();
+
+  server.listen({ port: 3000 }, (err, address) => {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
+    console.log(`Server is running on ${address}`);
+  });
+}
+
+bootstrap().catch((error) => {
+  console.error(error);
+  process.exit(1);
 });
