@@ -8,16 +8,27 @@ import type {
 import type { Pagination } from "../../../domain/shared/pagination";
 import type { Database } from "../../database";
 import { products } from "../../database/schema";
+import { NotFoundError } from "../../../domain/shared/errors";
 
 export class DrizzleProductRepository implements ProductRepository {
   constructor(private readonly database: Database) {}
 
   async createProduct(product: CreateProductInput) {
-    await this.database.insert(products).values({
-      name: product.name,
-      description: product.description,
-      price: product.price.toString(),
-    });
+    const [data] = await this.database
+      .insert(products)
+      .values({
+        name: product.name,
+        description: product.description,
+        price: product.price.toString(),
+      })
+      .returning();
+
+    return {
+      id: data?.id,
+      name: data?.name,
+      description: data?.description,
+      price: Number(data?.price),
+    } as Product;
   }
 
   async getProductById(id: number): Promise<Product | null> {
@@ -50,10 +61,13 @@ export class DrizzleProductRepository implements ProductRepository {
     };
   }
 
-  async getProducts(query: Pagination): Promise<Product[]> {
+  async getProducts({
+    limit = 10,
+    offset = 0,
+  }: Pagination): Promise<Product[]> {
     const response = await this.database.query.products.findMany({
-      limit: query.limit,
-      offset: query.offset,
+      limit,
+      offset,
     });
 
     return response.map((product) => ({
@@ -69,13 +83,21 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async updateProduct(id: number, product: UpdateProductInput) {
-    await this.database
+    const [data] = await this.database
       .update(products)
       .set({
         name: product.name,
         description: product.description,
         price: product.price.toString(),
       })
-      .where(eq(products.id, id));
+      .where(eq(products.id, id))
+      .returning();
+
+    return {
+      id: data?.id,
+      name: data?.name,
+      description: data?.description,
+      price: Number(data?.price),
+    } as Product | null;
   }
 }

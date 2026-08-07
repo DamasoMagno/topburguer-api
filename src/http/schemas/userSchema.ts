@@ -7,6 +7,11 @@ const createUserSchema = z.object({
   role: z.enum(["admin", "user"]),
 });
 
+export const authenticateUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+
 const userResponseSchema = z.object({
   id: z.number(),
   name: z.string(),

@@ -1,28 +1,21 @@
 import { eq } from "drizzle-orm";
-import type { UserAddressRepository } from "../../../application/ports/outbound/user-address.repository";
-import type {
-  CreateUserAddressInput,
-  UpdateUserAddressInput,
-  UserAddress,
-} from "../../../domain/user-address/user-address";
 import type { Database } from "../../database";
-import { userAddresses, users, users } from "../../database/schema";
+import { users } from "../../database/schema";
 import type { UserRepository } from "../../../application/ports/outbound/user.repository";
 import type {
   CreateUserInput,
   UpdateUserInput,
   User,
 } from "../../../domain/user/user";
+import bcrypt from "bcrypt";
 
 export class DrizzleUserRepository implements UserRepository {
   constructor(private readonly database: Database) {}
 
   async createUser(user: CreateUserInput) {
-    await this.database.insert(userAddresses).values({
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      role: user.role,
+    await this.database.insert(users).values({
+      ...user,
+      password: await bcrypt.hash(user.password, 10),
     });
   }
 
@@ -33,7 +26,13 @@ export class DrizzleUserRepository implements UserRepository {
 
     if (!user) return null;
 
-    return user;
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      password: user.password ?? "",
+    };
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
@@ -43,7 +42,13 @@ export class DrizzleUserRepository implements UserRepository {
 
     if (!user) return null;
 
-    return user;
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      password: user.password ?? "",
+    };
   }
 
   async updateUser(id: number, user: UpdateUserInput) {
@@ -65,11 +70,17 @@ export class DrizzleUserRepository implements UserRepository {
     email: string,
     password: string,
   ): Promise<User | null> {
-    const user = await this.database.query.users.findFirst({
-      where: { email },
-    });
+    const user = await this.getUserByEmail(email);
 
-    if (!user) return null;
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password");
+    }
 
     return user;
   }

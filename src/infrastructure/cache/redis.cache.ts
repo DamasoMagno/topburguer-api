@@ -30,7 +30,11 @@ export class RedisCache implements CachePort {
     return this.client.get(key);
   }
 
-  async set(key: string, value: string) {
-    return this.client.set(key, value);
+  async set(key: string, value: string, expiresIn: number | undefined = 60) {
+    return this.client.set(key, value, { EX: expiresIn });
+  }
+
+  async delete(key: string) {
+    return this.client.del(key);
   }
 }

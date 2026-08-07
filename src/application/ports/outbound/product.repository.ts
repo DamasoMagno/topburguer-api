@@ -6,10 +6,10 @@ import type {
 import type { Pagination } from "../../../domain/shared/pagination";
 
 export interface ProductRepository {
-  createProduct(product: CreateProductInput): Promise<void>;
+  createProduct(product: CreateProductInput): Promise<Product | null>;
   getProductById(id: number): Promise<Product | null>;
   getProductByName(name: string): Promise<Product | null>;
   getProducts(query: Pagination): Promise<Product[]>;
-  updateProduct(id: number, product: UpdateProductInput): Promise<void>;
+  updateProduct(id: number, product: UpdateProductInput): Promise<Product | null>;
   deleteProduct(id: number): Promise<void>;
 }

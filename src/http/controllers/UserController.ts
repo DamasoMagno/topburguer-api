@@ -4,6 +4,7 @@ import {
   userParamsSchema,
   updateUserSchema,
   userResponseSchema,
+  authenticateUserSchema,
 } from "../schemas/userSchema";
 import type { UserService } from "../../application/use-cases/user/user.service";
 
@@ -21,6 +22,29 @@ export class UserController {
     });
 
     return response.status(201).send({ message: "User created successfully" });
+  }
+
+  async authenticateUser(request: FastifyRequest, response: FastifyReply) {
+    const { email, password } = authenticateUserSchema.parse(request.body);
+    const user = await this.userService.authenticateUser(email, password);
+
+    if (!user) {
+      return response
+        .status(401)
+        .send({ message: "Invalid email or password" });
+    }
+
+    return response.jwtSign(
+      {
+        role: user.role,
+      },
+      {
+        sign: {
+          sub: user.id.toString(),
+          expiresIn: "7d",
+        },
+      },
+    );
   }
 
   async getUserById(request: FastifyRequest, response: FastifyReply) {

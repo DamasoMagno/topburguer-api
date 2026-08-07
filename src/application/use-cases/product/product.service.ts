@@ -8,11 +8,27 @@ import type {
 import { ConflictError, NotFoundError } from "../../../domain/shared/errors";
 
 export class ProductService {
+  private readonly CACHE_TTL = 60 * 60 * 24; // 24 hours
+
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly fileStorage: FileStoragePort,
     private readonly cache: CachePort,
   ) {}
+
+  private productToDTO(product: {
+    id: number;
+    name: string;
+    description: string;
+    price: number | string;
+  }) {
+    return {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: Number(product.price),
+    };
+  }
 
   async getProducts() {
     const cachedProducts = await this.cache.get("products");
@@ -24,62 +40,68 @@ export class ProductService {
       limit: 10,
       offset: 0,
     });
-    await this.cache.set("products", JSON.stringify(products));
+    await this.cache.set("products", JSON.stringify(products), this.CACHE_TTL);
+
     return products;
   }
 
   async createProduct(product: CreateProductInput) {
-    const existing = await this.productRepository.getProductByName(product.name);
+    const existing = await this.productRepository.getProductByName(
+      product.name,
+    );
     if (existing) throw new ConflictError("Product already exists");
 
-    await this.productRepository.createProduct(product);
+    const data = await this.productRepository.createProduct(product);
 
-    const products = await this.productRepository.getProducts({
-      limit: 10,
-      offset: 0,
-    });
-    await this.cache.set(`product:${product.name}`, JSON.stringify(product));
-    await this.cache.set("products", JSON.stringify(products));
+    if (!data) throw new NotFoundError("Product not found");
+
+    await this.cache.delete("products");
+    await this.cache.set(
+      `product:id:${data.id}`,
+      JSON.stringify(data),
+      this.CACHE_TTL,
+    );
   }
 
   async getProductById(id: number) {
+    const cachedProduct = await this.cache.get(`product:id:${id}`);
+
+    if (cachedProduct) {
+      return JSON.parse(cachedProduct);
+    }
+
     const product = await this.productRepository.getProductById(id);
-    if (!product) throw new NotFoundError("Product not found");
+    if (!product) {
+      throw new NotFoundError("Product not found");
+    }
 
-    await this.cache.set(`product:${id}`, JSON.stringify(product));
+    const data = this.productToDTO(product);
 
-    return {
-      name: product.name,
-      description: product.description,
-      price: Number(product.price),
-    };
-  }
+    await this.cache.set(
+      `product:id:${id}`,
+      JSON.stringify(data),
+      this.CACHE_TTL,
+    );
 
-  async getProductByName(name: string) {
-    const cachedProduct = await this.cache.get(`product:${name}`);
-    if (cachedProduct) return JSON.parse(cachedProduct);
-
-    const product = await this.productRepository.getProductByName(name);
-    if (!product) throw new NotFoundError("Product not found");
-
-    return {
-      name: product.name,
-      description: product.description,
-      price: Number(product.price),
-    };
+    return data;
   }
 
   async updateProduct(id: number, product: UpdateProductInput) {
-    const cachedProduct = await this.cache.get(`product:${id}`);
-    if (cachedProduct) {
-      await this.cache.set(`product:${id}`, JSON.stringify(product));
-    }
+    const data = await this.productRepository.updateProduct(id, product);
 
-    await this.productRepository.updateProduct(id, product);
+    if (!data) throw new NotFoundError("Product not found");
+
+    const dataString = JSON.stringify(this.productToDTO(data));
+
+    await this.cache.set(`product:id:${id}`, dataString, this.CACHE_TTL);
+    await this.cache.delete(`products`);
   }
 
   async deleteProduct(id: number) {
     await this.productRepository.deleteProduct(id);
+
+    await this.cache.delete(`product:id:${id}`);
+    await this.cache.delete(`products`);
   }
 
   async createProductImage(id: number, image: string) {
